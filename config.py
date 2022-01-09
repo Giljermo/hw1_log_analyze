@@ -1,4 +1,5 @@
 import json
+import os
 from json.decoder import JSONDecodeError
 import logging as lg
 
@@ -15,6 +16,7 @@ DEFAULT_CONFIG = {
 def load_config(path_=None):
     """загрузить парметры для парсинга"""
     if not path_:
+        [os.makedirs(DEFAULT_CONFIG[d]) for d in ['REPORT_DIR', 'LOG_DIR']]
         return DEFAULT_CONFIG
 
     try:
