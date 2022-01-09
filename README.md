@@ -10,6 +10,7 @@ python log_analyzer.py
 ```sh
 python log_analyzer.py --config "path/the/config"
 ```
+где --config указывает путь до конфига
 
 ## Пример запуска тестов
 ```sh
