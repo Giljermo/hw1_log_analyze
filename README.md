@@ -3,11 +3,11 @@
 
 
 ## Пример запуска скрипта
-'''sh
+```sh
 python log_analyzer.py
-'''
+```
 
 ## Пример запуска тестов
-'''sh
+```sh
 python test_log.py
-'''
+```
