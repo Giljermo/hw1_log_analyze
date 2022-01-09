@@ -9,23 +9,22 @@ from tools import get_time_array, calc_log_stats, get_log_attrs
 from config import load_config
 
 
-# распарсить аргументы с помощью argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("-c", "--config", help="путь до конфига парсера", default="")
-args = parser.parse_args()
-
-# считать парамметры конфига
-config = load_config(path_=args.config)
-
-# настроить логер
-file_name = f"{config['LOG_DIR']}/parser.log" if config['LOG_DIR'] else None
-lg.basicConfig(filename=file_name,
-               level='INFO',
-               format='[%(asctime)s] %(levelname).1s %(message)s',
-               datefmt='%Y.%m.%d %H:%M:%S')
-
-
 def main():
+    # распарсить аргументы с помощью argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--config", help="путь до конфига парсера", default="")
+    args = parser.parse_args()
+
+    # считать парамметры конфига
+    config = load_config(path_=args.config)
+
+    # настроить логер
+    file_name = f"{config['LOG_DIR']}/parser.log" if config['LOG_DIR'] else None
+    lg.basicConfig(filename=file_name,
+                   level='INFO',
+                   format='[%(asctime)s] %(levelname).1s %(message)s',
+                   datefmt='%Y.%m.%d %H:%M:%S')
+
     log_name, log_date = get_log_attrs(config)  # получить путь лог файла
     if not log_name:
         lg.info(f'Лог файл отсутсвует в каталоге "{config["LOG_DIR"]}" ')
