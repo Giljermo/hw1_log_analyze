@@ -4,11 +4,7 @@ import gzip
 from array import array
 from datetime import datetime as dt
 from statistics import median
-
-
-def parse_date(date_string):
-    """получить объект datetime из строки"""
-    return dt.strptime(date_string, '%Y%m%d')
+from string import Template
 
 
 def get_log_attrs(config):
@@ -16,46 +12,47 @@ def get_log_attrs(config):
     поиск наменования актуального лога, а получения его даты создания
     """
     actual_log = None
-    date_log = None
+    actual_date = None
 
-    for log in os.listdir(config['LOG_DIR']):
-        match = re.match(config['LOG_NAME_PATTERN'], log)
+    for log_name in os.listdir(config['LOG_DIR']):
+        match = re.match(config['LOG_NAME_PATTERN'], log_name)
         if not match:
             continue
 
-        date_ = match.group(1)
-        if date_:
-            if not date_log:
-                date_log = parse_date(date_)
-                actual_log = log
-            else:
-                if parse_date(date_) > date_log:
-                    date_log = parse_date(date_)
-                    actual_log = log
+        date = match.group(1)
+        if not date:
+            continue
 
-    return actual_log, date_log
+        if not actual_date:
+            actual_date = dt.strptime(date, '%Y%m%d')
+            actual_log = log_name
+        elif dt.strptime(date, '%Y%m%d') > actual_date:
+            actual_date = dt.strptime(date, '%Y%m%d')
+            actual_log = log_name
+
+    return actual_log, actual_date
 
 
-def get_log_info(log_path):
-    """получить построчную информацию из логов"""
+def get_url_and_time_from_log(log_path, parser):
+    """считывает построчно логи и возвращает распарсенные данные: url и time"""
     log_open = gzip.open if log_path.endswith('.gz') else open
-    with log_open(log_path, 'r') as f:
-        for line in f.readlines():
+    with log_open(log_path, 'r') as file:
+        for line in file:
             if isinstance(line, bytes):
                 line = line.decode('utf-8')
-            yield line
+            yield parser(line)
 
 
-def parse_url_and_time(log_info):
-    """распарсить url и время обработки url"""
+def url_and_time_parser(log_string):
+    """ получить строку и вернуть распарсенные данные: url и time """
     url = time = None
     pattern = '.+\"(GET|POST) (.+?) '
-    match = re.match(pattern, log_info)
+    match = re.match(pattern, log_string)
     if match:
         url = match.group(2)
 
-    if float(log_info.strip('\n').split()[-1]):
-        time = float(log_info.strip('\n').split()[-1])
+    if float(log_string.strip('\n').split()[-1]):
+        time = float(log_string.strip('\n').split()[-1])
 
     return url, time
 
@@ -66,8 +63,7 @@ def get_time_array(log_path):
     success_count = 0
     unsuccess_count = 0
 
-    for log_info in get_log_info(log_path):
-        url, time = parse_url_and_time(log_info)
+    for url, time in get_url_and_time_from_log(log_path=log_path, parser=url_and_time_parser):
         if (not url) or (not time):  # если не удалось распарсить данные
             unsuccess_count += 1
             continue
@@ -110,3 +106,13 @@ def calc_log_stats(stats):
         })
 
     return stats_for_render
+
+
+def render_report(template, stats):
+    with open(template, encoding='utf-8') as f:
+        return Template(f.read()).safe_substitute({'table_json': stats})
+
+
+def save_report(save_path, report):
+    with open(save_path, mode='w') as f:
+        f.write(report)

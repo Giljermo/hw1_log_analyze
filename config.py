@@ -1,9 +1,9 @@
 import json
-import os
 from json.decoder import JSONDecodeError
-import logging as lg
+import logging
 
-DEFAULT_CONFIG = {
+
+config = {
     "REPORT_SIZE": 1000,
     "REPORT_DIR": "./reports",
     "LOG_DIR": "./log",
@@ -13,19 +13,14 @@ DEFAULT_CONFIG = {
 }
 
 
-def load_config(path_=None):
+def load_config(path):
     """загрузить парметры для парсинга"""
-    if not path_:
-        [os.makedirs(DEFAULT_CONFIG[d]) for d in ['REPORT_DIR', 'LOG_DIR']]
-        return DEFAULT_CONFIG
-
     try:
-        with open(path_, encoding='utf-8') as f:
-            temp_config = json.load(f)
-            for key in DEFAULT_CONFIG.copy():
-                if key in temp_config:
-                    DEFAULT_CONFIG[key] = temp_config[key]
-        return DEFAULT_CONFIG
+        with open(path, encoding='utf-8') as f:
+            file_config = json.load(f)
+            config.update(file_config)
+
+        return config
     except (FileNotFoundError, PermissionError, JSONDecodeError):
-        lg.exception(...)
-        raise Exception("файл не существует или не парсится")
+        logging.exception(...)
+        raise Exception("файл конфига не существует или не парсится")
