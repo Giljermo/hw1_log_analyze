@@ -23,7 +23,12 @@ def get_log_attrs(config):
         if not date:
             continue
 
-        if (not actual_date) or (dt.strptime(date, '%Y%m%d') > actual_date):
+        try:
+            date = dt.strptime(date, '%Y%m%d')
+        except ValueError:
+            continue
+
+        if (not actual_date) or (date > actual_date):
             actual_date = dt.strptime(date, '%Y%m%d')
             actual_log = log_name
 
